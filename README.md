@@ -1,4 +1,4 @@
-# 더 지니어스: 흑과백 with AI 🎲
+# 더 지니어스 : 흑과백 with AI 🎲
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)]()
 [![Pygame](https://img.shields.io/badge/Pygame-2.0.1-green)]()
