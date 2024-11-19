@@ -235,6 +235,9 @@ class BlackWhiteGame:
         if self.dragging_tile:
             self.dragging_tile.draw(screen)
 
+        round_text = main_font.render(f"Round: {self.round}", True, WHITE)
+        screen.blit(round_text, (screen_width // 2 - round_text.get_width() // 2, 350))
+
         if self.state == GameState.SETUP:
             start_button = pygame.Rect(screen_width // 2 - 75, 470, 150, 50)
             pygame.draw.rect(screen, GOLD, start_button)
@@ -254,11 +257,12 @@ class BlackWhiteGame:
                 else:
                     winner_text = title_font.render("무승부입니다.", True, WHITE)
                 
-                screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, 270))
-                screen.blit(winner_text, (screen_width // 2 - winner_text.get_width() // 2, 350))
+                screen.fill(DARK_RED)
+                screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, 310))
+                screen.blit(winner_text, (screen_width // 2 - winner_text.get_width() // 2, 400))
                 
                 restart_text = main_font.render("Press R to restart", True, WHITE)
-                screen.blit(restart_text, (screen_width // 2 - restart_text.get_width() // 2, 410))
+                screen.blit(restart_text, (screen_width // 2 - restart_text.get_width() // 2, 490))
             else:
                 if self.round_result:
                     result_text = main_font.render(self.round_result, True, GOLD)
@@ -271,10 +275,14 @@ class BlackWhiteGame:
             turn_text = main_font.render("당신의 차례입니다." if self.state == GameState.PLAYER_TURN else "AI의 차례입니다.", True, WHITE)
             screen.blit(turn_text, (screen_width // 2 - turn_text.get_width() // 2, 380))
 
-        round_text = main_font.render(f"Round: {self.round}", True, WHITE)
-        screen.blit(round_text, (screen_width // 2 - round_text.get_width() // 2, 350))
 
 def main():
+
+    pygame.mixer.init()
+    pygame.mixer.music.load('y2mate.mp3')
+    pygame.mixer.music.set_volume(0.15)
+    pygame.mixer.music.play(-1)
+
     clock = pygame.time.Clock()
     game = BlackWhiteGame()
     running = True
