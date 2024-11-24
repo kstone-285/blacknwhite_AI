@@ -22,10 +22,10 @@ def train_policy_agents():
     agent1 = PolicyGradientAgent(state_size, action_size)
     agent2 = PolicyGradientAgent(state_size, action_size)
     
-    max_reward = 5.0
-    min_penalty = -2.0
-    decay_rate = 0.5
-    n_episodes = 10000
+    max_reward = 3.0
+    min_penalty = -1.6
+    decay_rate = 0.26
+    n_episodes = 15000
     
     for e in range(n_episodes):
         state = env.reset()
@@ -53,12 +53,15 @@ def train_policy_agents():
                 
                 # 라운드 결과에 따른 보상 계산
                 tile_diff = abs(env.player1_last_tile - env.player2_last_tile)
-                if reward > 0:  # Player 1 score
-                    round_reward1 = max_reward - tile_diff * decay_rate
-                    round_reward2 = min_penalty + tile_diff * decay_rate
-                else:  # Player 2 score
-                    round_reward1 = min_penalty + tile_diff * decay_rate
+                if reward > 0:  # Player 2 win
                     round_reward2 = max_reward - tile_diff * decay_rate
+                    round_reward1 = min_penalty + tile_diff * decay_rate
+                elif reward < 0:  # Player 1 win
+                    round_reward2 = min_penalty + tile_diff * decay_rate
+                    round_reward1 = max_reward - tile_diff * decay_rate
+                else : # draw
+                    round_reward1 = min_penalty
+                    round_reward2 = min_penalty
                 
                 agent1.add_reward(round_reward1)
                 agent2.add_reward(round_reward2)
@@ -101,7 +104,8 @@ def train_policy_agents():
     
     # 학습된 모델 저장
     try:
-        torch.save(agent2.model.state_dict(), 'black_white_policy_ai.pth')
+        torch.save(agent2.model.state_dict(), 'black_white_policy_agent2.pth')
+        torch.save(agent1.model.state_dict(), 'black_white_policy_agent1.pth')
         print("Model saved successfully")
     except Exception as e:
         print(f"Error saving model: {str(e)}")

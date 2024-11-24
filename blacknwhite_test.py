@@ -2,6 +2,8 @@ import pygame
 import random
 import math
 import time
+import numpy as np
+from game_ai_integration import PolicyAIPlayer
 
 # Initialize pygame
 pygame.init()
@@ -18,9 +20,9 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Black and White")
 
 # Fonts
-title_font = pygame.font.Font("C:\\Users\\Kstone\\mypractice\\opensourceproj\\HeirofLightBold.ttf", 40)
-main_font = pygame.font.Font("C:\\Users\\Kstone\\mypractice\\opensourceproj\\HeirofLightBold.ttf", 20)
-score_font = pygame.font.Font("C:\\Users\\Kstone\\mypractice\\opensourceproj\\HeirofLightBold.ttf", 20)
+title_font = pygame.font.Font("C:\\cppractice\\opensource\\HeirofLightBold.ttf", 40)
+main_font = pygame.font.Font("C:\\cppractice\\opensource\\HeirofLightBold.ttf", 20)
+score_font = pygame.font.Font("C:\\cppractice\\opensource\\HeirofLightBold.ttf", 20)
 
 # Game states
 class GameState:
@@ -75,20 +77,53 @@ class Tile:
             color = BLACK if self.is_black else WHITE
             pygame.draw.rect(surface, color, self.rect)
             pygame.draw.rect(surface, GOLD, self.rect, 2)
-            if not hide_number:
+            if not hide_number and self.is_player1 :
                 text = main_font.render(str(self.number), True, WHITE if self.is_black else BLACK)
                 text_rect = text.get_rect(center=self.rect.center)
                 surface.blit(text, text_rect)
 
 class BlackWhiteGame:
     def __init__(self):
+        self.ai_player = PolicyAIPlayer('black_white_policy_agent2.pth')
         self.reset_game()
+
+    def get_state_for_ai(self):
+        state = []
+        # AI의 남은 타일들
+        for i in range(9):
+            found = False
+            for tile in self.player2_tiles:
+                if not tile.used and tile.number == i:
+                    state.append(1)
+                    found = True
+                    break
+            if not found:
+                state.append(0)
+                
+        # 플레이어1의 타일 상태 (9개의 위치를 유지하되, 사용 여부만 표시)
+        for i in range(9):
+            found = False
+            for tile in self.player1_tiles:
+                if tile.used:  # 구체적인 숫자는 확인하지 않고 사용 여부만 체크
+                    state.append(1)
+                    found = True
+                    break
+            if not found:
+                state.append(0)
+                
+        # 현재 라운드, 점수 상태
+        state.extend([self.round, self.player1_score, self.player2_score])
+        return np.array(state, dtype=np.float32)
 
     def reset_game(self):
         self.state = GameState.SETUP_PLAYER1
         self.player1_tiles = [Tile(i, i % 2 == 0, True) for i in range(9)]
         self.player2_tiles = [Tile(i, i % 2 == 0, False) for i in range(9)]
+
+        random.shuffle(self.player2_tiles)
+
         tile_start_x = (screen_width - (9 * 90)) // 2
+
         self.player1_slots = [pygame.Rect(tile_start_x + i * 90, 600, 80, 120) for i in range(9)]
         self.player2_slots = [pygame.Rect(tile_start_x + i * 90, 80, 80, 120) for i in range(9)]
         self.player1_positions = [None] * 9
@@ -123,7 +158,28 @@ class BlackWhiteGame:
         return None
 
     def handle_event(self, event):
-        if self.state in [GameState.SETUP_PLAYER1, GameState.SETUP_PLAYER2]:
+
+        if self.state == GameState.PLAYER2_TURN:
+            # AI의 턴
+            valid_actions = []
+            for tile in self.player2_tiles:
+                if not tile.used:
+                    valid_actions.append(tile.number)
+            
+            state = self.get_state_for_ai()
+            action = self.ai_player.get_action(state, valid_actions)
+            
+            # 선택된 타일 찾기
+            for tile in self.player2_tiles:
+                if not tile.used and tile.number == action:
+                    selected_tile = tile
+                    selected_tile.original_pos = selected_tile.rect.topleft
+                    selected_tile.target_pos = (CENTER_X, PLAYER2_CENTER_Y)
+                    self.selected_tile_player2 = selected_tile
+                    self.state = GameState.ANIMATING
+                    break
+
+        elif self.state in [GameState.SETUP_PLAYER1, GameState.SETUP_PLAYER2]:
             current_positions = self.player1_positions if self.state == GameState.SETUP_PLAYER1 else self.player2_positions
             current_slots = self.player1_slots if self.state == GameState.SETUP_PLAYER1 else self.player2_slots
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -201,9 +257,13 @@ class BlackWhiteGame:
     def compare_tiles(self):
         player1_tile = self.selected_tile_player1
         player2_tile = self.selected_tile_player2
-
+        
+        if player1_tile is None or player2_tile is None:
+            self.round_result = "오류: 선택된 타일이 없습니다."
+            return
+        
         time.sleep(0.4)
-
+        
         if player1_tile.number > player2_tile.number:
             self.player1_score += 1
             self.round_result = "플레이어 1의 승리입니다."
@@ -214,15 +274,16 @@ class BlackWhiteGame:
             self.current_player = 2
         else:
             self.round_result = "무승부입니다. 누구의 점수도 증가하지 않습니다."
+        
         player1_tile.used = True
         player2_tile.used = True
 
     def check_game_over(self):
-        return self.player1_score >= 5 or self.player2_score >= 5 or self.round >= 9
+        return self.player1_score >= 5 or self.player2_score >= 5 or self.round >= 10
 
     def draw(self, screen):
         screen.fill(DARK_RED)
-        title = title_font.render("더 지니어스 : 흑과백 (Player vs Player)", True, GOLD)
+        title = title_font.render("더 지니어스 : 흑과백 ( VS AI )", True, GOLD)
         screen.blit(title, (screen_width // 2 - title.get_width() // 2, 10))
 
         player1_score = score_font.render(f"플레이어 1 : {self.player1_score}", True, WHITE)
@@ -276,11 +337,12 @@ class BlackWhiteGame:
             restart_text = main_font.render("Press R to restart", True, WHITE)
             screen.blit(restart_text, (screen_width // 2 - restart_text.get_width() // 2, 490))
 
+
 def main():
 
     pygame.mixer.init()
     pygame.mixer.music.load('y2mate.mp3')
-    pygame.mixer.music.set_volume(0.15)
+    pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(-1)
 
     clock = pygame.time.Clock()
