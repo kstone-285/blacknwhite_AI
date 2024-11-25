@@ -13,6 +13,8 @@ DARK_RED = (139, 0, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GOLD = (255, 215, 0)
+GRAY = (128, 128, 128)
+LIGHT_RED = (220, 20, 60)
 
 # Screen setup
 screen_width, screen_height = 1000, 800
@@ -20,19 +22,20 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Black and White")
 
 # Fonts
-title_font = pygame.font.Font("C:\\cppractice\\opensource\\HeirofLightBold.ttf", 40)
-main_font = pygame.font.Font("C:\\cppractice\\opensource\\HeirofLightBold.ttf", 20)
-score_font = pygame.font.Font("C:\\cppractice\\opensource\\HeirofLightBold.ttf", 20)
+title_font = pygame.font.Font("opensourceproj\\HeirofLightBold.ttf", 40)
+main_font = pygame.font.Font("opensourceproj\\HeirofLightBold.ttf", 20)
+score_font = pygame.font.Font("opensourceproj\\HeirofLightBold.ttf", 20)
 
 # Game states
 class GameState:
-    SETUP_PLAYER1 = 0
-    SETUP_PLAYER2 = 1
-    PLAYER1_TURN = 2
-    PLAYER2_TURN = 3
-    ANIMATING = 4
-    ROUND_END = 5
-    GAME_OVER = 6
+    MAIN_MENU = 0
+    SETUP_PLAYER1 = 1
+    SETUP_PLAYER2 = 2
+    PLAYER1_TURN = 3
+    PLAYER2_TURN = 4
+    ANIMATING = 5
+    ROUND_END = 6
+    GAME_OVER = 7
 
 # Animation parameters
 MOVE_SPEED = 4
@@ -84,8 +87,96 @@ class Tile:
 
 class BlackWhiteGame:
     def __init__(self):
-        self.ai_player = PolicyAIPlayer('black_white_policy_agent2.pth')
+        self.ai_player = PolicyAIPlayer('black_white_policy_agent1.pth')
         self.reset_game()
+        self.menu_particles = self.create_menu_particles()
+        self.title_glow = 0
+        self.title_glow_direction = 1
+
+    def create_menu_particles(self):
+        particles = []
+        for _ in range(50):
+            x = random.randint(0, screen_width)
+            y = random.randint(0, screen_height)
+            size = random.randint(1, 3)
+            speed_x = random.uniform(-0.5, 0.5)
+            speed_y = random.uniform(-0.5, 0.5)
+            particles.append({
+                'pos': [x, y],
+                'size': size,
+                'speed_x': speed_x,
+                'speed_y': speed_y
+            })
+        return particles
+
+    def update_menu_particles(self):
+        for particle in self.menu_particles:
+            particle['pos'][0] += particle['speed_x']
+            particle['pos'][1] += particle['speed_y']
+
+            # Wrap around screen
+            if particle['pos'][0] < 0:
+                particle['pos'][0] = screen_width
+            elif particle['pos'][0] > screen_width:
+                particle['pos'][0] = 0
+            if particle['pos'][1] < 0:
+                particle['pos'][1] = screen_height
+            elif particle['pos'][1] > screen_height:
+                particle['pos'][1] = 0
+
+    def draw_menu_particles(self, screen):
+        for particle in self.menu_particles:
+            pygame.draw.circle(screen, GOLD, 
+                               (int(particle['pos'][0]), int(particle['pos'][1])), 
+                               particle['size'])
+
+    def draw_main_menu(self, screen):
+        screen.fill(DARK_RED)
+        
+        # Animated particles
+        self.update_menu_particles()
+        self.draw_menu_particles(screen)
+
+        # Animated Title Glow
+        self.title_glow += 2 * self.title_glow_direction
+        if self.title_glow > 50 or self.title_glow < 0:
+            self.title_glow_direction *= -1
+        
+        # Title with glow effect
+        title_surface = title_font.render("더 지니어스", True, GOLD)
+        title_glow = title_font.render("더 지니어스", True, GOLD)
+        
+        screen.blit(title_glow, (screen_width // 2 - title_surface.get_width() // 2 - 2, 200 - 2))
+        screen.blit(title_surface, (screen_width // 2 - title_surface.get_width() // 2, 200))
+
+        subtitle = main_font.render(": 흑과백", True, WHITE)
+        screen.blit(subtitle, (screen_width // 2 + title_surface.get_width() // 2, 220))
+
+        # Buttons with hover effect
+        mouse_pos = pygame.mouse.get_pos()
+        
+        # VS AI Button
+        vs_ai_rect = pygame.Rect(screen_width // 2 - 150, 400, 300, 60)
+        vs_ai_color = GOLD if vs_ai_rect.collidepoint(mouse_pos) else LIGHT_RED
+        pygame.draw.rect(screen, vs_ai_color, vs_ai_rect, border_radius=10)
+        vs_ai_text = main_font.render("VS AI", True, BLACK)
+        screen.blit(vs_ai_text, (vs_ai_rect.centerx - vs_ai_text.get_width() // 2, vs_ai_rect.centery - vs_ai_text.get_height() // 2))
+
+        # VS Player Button
+        vs_player_rect = pygame.Rect(screen_width // 2 - 150, 500, 300, 60)
+        vs_player_color = GOLD if vs_player_rect.collidepoint(mouse_pos) else LIGHT_RED
+        pygame.draw.rect(screen, vs_player_color, vs_player_rect, border_radius=10)
+        vs_player_text = main_font.render("2P 모드", True, BLACK)
+        screen.blit(vs_player_text, (vs_player_rect.centerx - vs_player_text.get_width() // 2, vs_player_rect.centery - vs_player_text.get_height() // 2))
+
+        # Exit Button
+        exit_rect = pygame.Rect(screen_width // 2 - 150, 600, 300, 60)
+        exit_color = GOLD if exit_rect.collidepoint(mouse_pos) else LIGHT_RED
+        pygame.draw.rect(screen, exit_color, exit_rect, border_radius=10)
+        exit_text = main_font.render("게임 종료", True, BLACK)
+        screen.blit(exit_text, (exit_rect.centerx - exit_text.get_width() // 2, exit_rect.centery - exit_text.get_height() // 2))
+
+        return vs_ai_rect, vs_player_rect, exit_rect
 
     def get_state_for_ai(self):
         state = []
@@ -116,7 +207,7 @@ class BlackWhiteGame:
         return np.array(state, dtype=np.float32)
 
     def reset_game(self):
-        self.state = GameState.SETUP_PLAYER1
+        self.state = GameState.MAIN_MENU
         self.player1_tiles = [Tile(i, i % 2 == 0, True) for i in range(9)]
         self.player2_tiles = [Tile(i, i % 2 == 0, False) for i in range(9)]
 
@@ -348,10 +439,26 @@ def main():
     clock = pygame.time.Clock()
     game = BlackWhiteGame()
     running = True
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            if game.state == GameState.MAIN_MENU:
+                vs_ai_rect, vs_player_rect, exit_rect = game.draw_main_menu(screen)
+                
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    
+                    if vs_ai_rect.collidepoint(mouse_pos):
+                        game.state = GameState.SETUP_PLAYER1
+                    elif vs_player_rect.collidepoint(mouse_pos):
+                        # 추후 2인용 모드 구현 시 사용
+                        pass
+                    elif exit_rect.collidepoint(mouse_pos):
+                        running = False
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if game.state == GameState.ROUND_END:
                     game.round += 1
@@ -361,8 +468,12 @@ def main():
                     game.reset_game()
             game.handle_event(event)
 
-        game.update()
-        game.draw(screen)
+        if game.state == GameState.MAIN_MENU:
+            game.draw_main_menu(screen)
+        else:
+            game.update()
+            game.draw(screen)
+        
         pygame.display.flip()
         clock.tick(60)
 
