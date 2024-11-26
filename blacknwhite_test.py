@@ -25,6 +25,7 @@ pygame.display.set_caption("Black and White")
 title_font = pygame.font.Font("opensourceproj\\HeirofLightBold.ttf", 40)
 main_font = pygame.font.Font("opensourceproj\\HeirofLightBold.ttf", 20)
 score_font = pygame.font.Font("opensourceproj\\HeirofLightBold.ttf", 20)
+large_font = pygame.font.Font("opensourceproj\\HeirofLightBold.ttf", 80)
 
 # Game states
 class GameState:
@@ -81,8 +82,8 @@ class Tile:
             pygame.draw.rect(surface, color, self.rect)
             pygame.draw.rect(surface, GOLD, self.rect, 2)
             if not hide_number and self.is_player1 :
-                text = main_font.render(str(self.number), True, WHITE if self.is_black else BLACK)
-                text_rect = text.get_rect(center=self.rect.center)
+                text = large_font.render(str(self.number), True, WHITE if self.is_black else BLACK)
+                text_rect = text.get_rect(center=(self.rect.centerx, self.rect.centery - 3))
                 surface.blit(text, text_rect)
 
 class BlackWhiteGame:
@@ -95,7 +96,7 @@ class BlackWhiteGame:
 
     def create_menu_particles(self):
         particles = []
-        for _ in range(50):
+        for _ in range(200):
             x = random.randint(0, screen_width)
             y = random.randint(0, screen_height)
             size = random.randint(1, 3)
@@ -139,38 +140,40 @@ class BlackWhiteGame:
 
         # Animated Title Glow
         self.title_glow += 2 * self.title_glow_direction
-        if self.title_glow > 50 or self.title_glow < 0:
+        if self.title_glow > 200 or self.title_glow < 0:
             self.title_glow_direction *= -1
         
         # Title with glow effect
-        title_surface = title_font.render("더 지니어스", True, GOLD)
-        title_glow = title_font.render("더 지니어스", True, GOLD)
+        title_surface = large_font.render("더 지니어스", True, GOLD)
+        title_glow = large_font.render("더 지니어스", True, GRAY)
         
-        screen.blit(title_glow, (screen_width // 2 - title_surface.get_width() // 2 - 2, 200 - 2))
-        screen.blit(title_surface, (screen_width // 2 - title_surface.get_width() // 2, 200))
+        screen.blit(title_glow, (screen_width // 2 - title_surface.get_width() // 2 - 48, 180 - 2))
+        screen.blit(title_surface, (screen_width // 2 - title_surface.get_width() // 2 - 50, 180))
 
-        subtitle = main_font.render(": 흑과백", True, WHITE)
-        screen.blit(subtitle, (screen_width // 2 + title_surface.get_width() // 2, 220))
+        subtitle = title_font.render(":  흑과백", True, WHITE)
+        subtitle_glow = title_font.render(":  흑과백", True, GRAY)
+        screen.blit(subtitle_glow, (screen_width // 2 + title_surface.get_width() // 2 - 28, 230 - 2))        
+        screen.blit(subtitle, (screen_width // 2 + title_surface.get_width() // 2 - 30 , 230))
 
         # Buttons with hover effect
         mouse_pos = pygame.mouse.get_pos()
         
         # VS AI Button
-        vs_ai_rect = pygame.Rect(screen_width // 2 - 150, 400, 300, 60)
+        vs_ai_rect = pygame.Rect(screen_width // 2 - 120, 350, 250, 60)
         vs_ai_color = GOLD if vs_ai_rect.collidepoint(mouse_pos) else LIGHT_RED
         pygame.draw.rect(screen, vs_ai_color, vs_ai_rect, border_radius=10)
         vs_ai_text = main_font.render("VS AI", True, BLACK)
         screen.blit(vs_ai_text, (vs_ai_rect.centerx - vs_ai_text.get_width() // 2, vs_ai_rect.centery - vs_ai_text.get_height() // 2))
 
         # VS Player Button
-        vs_player_rect = pygame.Rect(screen_width // 2 - 150, 500, 300, 60)
+        vs_player_rect = pygame.Rect(screen_width // 2 - 120, 450, 250, 60)
         vs_player_color = GOLD if vs_player_rect.collidepoint(mouse_pos) else LIGHT_RED
         pygame.draw.rect(screen, vs_player_color, vs_player_rect, border_radius=10)
         vs_player_text = main_font.render("2P 모드", True, BLACK)
         screen.blit(vs_player_text, (vs_player_rect.centerx - vs_player_text.get_width() // 2, vs_player_rect.centery - vs_player_text.get_height() // 2))
 
         # Exit Button
-        exit_rect = pygame.Rect(screen_width // 2 - 150, 600, 300, 60)
+        exit_rect = pygame.Rect(screen_width // 2 - 120, 550, 250, 60)
         exit_color = GOLD if exit_rect.collidepoint(mouse_pos) else LIGHT_RED
         pygame.draw.rect(screen, exit_color, exit_rect, border_radius=10)
         exit_text = main_font.render("게임 종료", True, BLACK)
@@ -399,9 +402,10 @@ class BlackWhiteGame:
 
         if self.state in [GameState.SETUP_PLAYER1, GameState.SETUP_PLAYER2]:
             start_button = pygame.Rect(screen_width // 2 - 75, 470, 150, 50)
-            pygame.draw.rect(screen, GOLD, start_button)
-            start_text = main_font.render("Next", True, BLACK)
-            screen.blit(start_text, (start_button.centerx - start_text.get_width() // 2, start_button.centery - start_text.get_height() // 2))
+            start_button_color = GOLD if start_button.collidepoint(pygame.mouse.get_pos()) else GRAY
+            pygame.draw.rect(screen, start_button_color, start_button)
+            start_text = main_font.render("NEXT", True, BLACK)
+            screen.blit(start_text, (start_button.centerx - start_text.get_width() // 2, start_button.centery - start_text.get_height() // 2 - 2))
             setup_text = main_font.render(f"플레이어 {1 if self.state == GameState.SETUP_PLAYER1 else 2} 타일 배치", True, WHITE)
             screen.blit(setup_text, (screen_width // 2 - setup_text.get_width() // 2, 320))
         elif self.state in [GameState.PLAYER1_TURN, GameState.PLAYER2_TURN]:
