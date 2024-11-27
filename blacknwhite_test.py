@@ -81,18 +81,21 @@ class Tile:
             color = BLACK if self.is_black else WHITE
             pygame.draw.rect(surface, color, self.rect)
             pygame.draw.rect(surface, GOLD, self.rect, 2)
-            if not hide_number and self.is_player1 :
+            if not hide_number:
                 text = large_font.render(str(self.number), True, WHITE if self.is_black else BLACK)
                 text_rect = text.get_rect(center=(self.rect.centerx, self.rect.centery - 3))
                 surface.blit(text, text_rect)
 
 class BlackWhiteGame:
-    def __init__(self):
-        self.ai_player = PolicyAIPlayer('black_white_policy_agent1.pth')
+    def __init__(self, is_ai_mode = True):
+
+        self.is_ai_mode = is_ai_mode
+        self.ai_player = PolicyAIPlayer('black_white_policy_agent1.pth') if is_ai_mode else None
         self.reset_game()
         self.menu_particles = self.create_menu_particles()
         self.title_glow = 0
         self.title_glow_direction = 1
+        
 
     def create_menu_particles(self):
         particles = []
@@ -132,7 +135,31 @@ class BlackWhiteGame:
                                particle['size'])
 
     def draw_main_menu(self, screen):
-        screen.fill(DARK_RED)
+
+        # Gradient background
+        if not hasattr(self, 'gradient_value'):
+            self.gradient_value = 0
+            self.gradient_direction = 1
+            self.last_update = time.time()
+
+        # Calculate time difference
+        now = time.time()
+        time_diff = now - self.last_update
+
+        # Change the gradient value every 2ms
+        if time_diff >= 0.04:  # 20ms update interval for smooth animation
+            self.gradient_value += self.gradient_direction * 2  # Adjust speed by changing increment
+            if self.gradient_value >= 50:  # Reverse direction when reaching white
+                self.gradient_value = 50
+                self.gradient_direction = -1
+            elif self.gradient_value <= 0:  # Reverse direction when reaching black
+                self.gradient_value = 0
+                self.gradient_direction = 1
+            self.last_update = now
+
+        # Apply gradient value to the background
+        background_color = (self.gradient_value, self.gradient_value, self.gradient_value)
+        screen.fill(background_color)
         
         # Animated particles
         self.update_menu_particles()
@@ -162,7 +189,7 @@ class BlackWhiteGame:
         vs_ai_rect = pygame.Rect(screen_width // 2 - 120, 350, 250, 60)
         vs_ai_color = GOLD if vs_ai_rect.collidepoint(mouse_pos) else LIGHT_RED
         pygame.draw.rect(screen, vs_ai_color, vs_ai_rect, border_radius=10)
-        vs_ai_text = main_font.render("VS AI", True, BLACK)
+        vs_ai_text = main_font.render("AI 대결", True, BLACK)
         screen.blit(vs_ai_text, (vs_ai_rect.centerx - vs_ai_text.get_width() // 2, vs_ai_rect.centery - vs_ai_text.get_height() // 2))
 
         # VS Player Button
@@ -214,7 +241,8 @@ class BlackWhiteGame:
         self.player1_tiles = [Tile(i, i % 2 == 0, True) for i in range(9)]
         self.player2_tiles = [Tile(i, i % 2 == 0, False) for i in range(9)]
 
-        random.shuffle(self.player2_tiles)
+        if self.is_ai_mode:
+            random.shuffle(self.player2_tiles)
 
         tile_start_x = (screen_width - (9 * 90)) // 2
 
@@ -253,7 +281,7 @@ class BlackWhiteGame:
 
     def handle_event(self, event):
 
-        if self.state == GameState.PLAYER2_TURN:
+        if self.is_ai_mode and self.state == GameState.PLAYER2_TURN:
             # AI의 턴
             valid_actions = []
             for tile in self.player2_tiles:
@@ -377,7 +405,7 @@ class BlackWhiteGame:
 
     def draw(self, screen):
         screen.fill(DARK_RED)
-        title = title_font.render("더 지니어스 : 흑과백 ( VS AI )", True, GOLD)
+        title = title_font.render("더 지니어스 : 흑과백 " + ("( VS AI )" if self.is_ai_mode else "( 2P 모드 )"), True, GOLD)
         screen.blit(title, (screen_width // 2 - title.get_width() // 2, 10))
 
         player1_score = score_font.render(f"플레이어 1 : {self.player1_score}", True, WHITE)
@@ -386,7 +414,10 @@ class BlackWhiteGame:
         screen.blit(player2_score, (screen_width - 150, 350))
 
         for tile in self.player2_tiles:
-            tile.draw(screen, hide_number=(self.state != GameState.PLAYER2_TURN and self.state != GameState.SETUP_PLAYER2))
+            tile.draw(screen, 
+                hide_number=(self.is_ai_mode or 
+                            (not self.is_ai_mode and self.state == GameState.SETUP_PLAYER1) or
+                            (not self.is_ai_mode and self.state not in [GameState.PLAYER2_TURN, GameState.SETUP_PLAYER2, GameState.SETUP_PLAYER1])))
 
         for slot in self.player1_slots:
             pygame.draw.rect(screen, GOLD, slot, 1)
@@ -456,10 +487,11 @@ def main():
                     mouse_pos = pygame.mouse.get_pos()
                     
                     if vs_ai_rect.collidepoint(mouse_pos):
+                        game = BlackWhiteGame(is_ai_mode=True)
                         game.state = GameState.SETUP_PLAYER1
                     elif vs_player_rect.collidepoint(mouse_pos):
-                        # 추후 2인용 모드 구현 시 사용
-                        pass
+                        game = BlackWhiteGame(is_ai_mode=False)
+                        game.state = GameState.SETUP_PLAYER1
                     elif exit_rect.collidepoint(mouse_pos):
                         running = False
 
