@@ -19,7 +19,7 @@
 
 ## 📺 데모 비디오
 
-![Watch the video on youtube](https://youtu.be/-MmGbWzX8nk)
+[![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/bnw.png)](https://youtu.be/-MmGbWzX8nk)
 
 ## ✨ 주요 기능
 - 🤖 **강화학습** 기반의 지능형 AI 플레이어
