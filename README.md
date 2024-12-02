@@ -20,7 +20,7 @@
 
 ## 📺 데모 비디오
 
-[![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/bnw.png)](https://youtu.be/-MmGbWzX8nk)
+[![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/images/bnw.png)](https://youtu.be/-MmGbWzX8nk)
 
 ## ✨ 주요 기능
 - 🤖 **강화학습** 기반의 지능형 AI 플레이어
@@ -30,7 +30,7 @@
 
 ## 🎯 게임 규칙
 
-[![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/bnw.png)](https://youtu.be/tffgFa6xFvg)
+[![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/images/bnwrule.png)](https://youtu.be/tffgFa6xFvg)
 
 1. **기본 설정**
    - 각 플레이어는 **0-8** 까지의 숫자 타일을 보유합니다.
