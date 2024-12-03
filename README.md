@@ -67,7 +67,7 @@
 - **각 AI 모델의 특징**:
   - ## ***DQN***
 
-    ![dqn](https://github.com/user-attachments/assets/1871453a-4a9c-428d-b5fa-5e1585a94231)  
+    <img width = "700" height = "240" src="https://github.com/user-attachments/assets/b6b910be-e1df-42e8-afe9-a840a7909a91">
 
     - **DQN**은 가장 처음 적용해본 모델로, 가장 접근성이 좋고 배우기 쉬운 모델이었기에 선택했습니다.<br>
     그러나 DQN은 흑과백과 같은 **확률기반, 장기전략**이 중요한 게임에서는 적합하지 않았습니다.<br>
@@ -83,8 +83,8 @@
          이로인해 고정된 패턴에 갇혀 학습을 진행한 결과가 일련의 **선택순서**였고, 이는 AI 모델에 적합하지 않다 판단하여 폐기했습니다.<br><br>
 
   - ## ***A2C***
-
-    ![a2c](https://github.com/user-attachments/assets/eb6f67ab-4c3e-433e-af1c-72bb137391f1)
+    
+    <img width = "700" height = "240" src="https://github.com/user-attachments/assets/eb6f67ab-4c3e-433e-af1c-72bb137391f1">
 
     - **A2C**는 **정책 기반 학습**과 **가치 기반 학습**을 결합한 알고리즘으로, DQN보다는 확률을 사용하기에 해당 게임에 더 적합하다고 판단해 적용했습니다.  
       이 알고리즘은 특히 **확률적 요소**가 많고 **장기적인 전략**이 중요한 게임에서 더욱 효과적이었습니다.  
