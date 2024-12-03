@@ -3,7 +3,7 @@ import random
 import math
 import time
 import numpy as np
-from game_ai_integration import PolicyAIPlayer
+from game_ai_integration import PolicyAIPlayer, AIPlayer, PPOAIPlayer
 
 # Initialize pygame
 pygame.init()
@@ -90,7 +90,7 @@ class BlackWhiteGame:
     def __init__(self, is_ai_mode = True):
 
         self.is_ai_mode = is_ai_mode
-        self.ai_player = PolicyAIPlayer('black_white_policy_agent1.pth') if is_ai_mode else None
+        self.ai_player = PPOAIPlayer('agent1_policy_ppo.pth') if is_ai_mode else None
         self.reset_game()
         self.menu_particles = self.create_menu_particles()
         self.title_glow = 0
@@ -356,6 +356,7 @@ class BlackWhiteGame:
                 self.reset_round()
 
     def update(self):
+
         if self.state == GameState.ANIMATING:
             animation_done = False
             if self.selected_tile_player1 and not self.selected_tile_player2:
@@ -377,6 +378,7 @@ class BlackWhiteGame:
             self.state = GameState.GAME_OVER
 
     def compare_tiles(self):
+
         player1_tile = self.selected_tile_player1
         player2_tile = self.selected_tile_player2
         
@@ -404,6 +406,7 @@ class BlackWhiteGame:
         return self.player1_score >= 5 or self.player2_score >= 5 or self.round >= 10
 
     def draw(self, screen):
+        
         screen.fill(DARK_RED)
         title = title_font.render("더 지니어스 : 흑과백 " + ("( VS AI )" if self.is_ai_mode else "( 2P 모드 )"), True, GOLD)
         screen.blit(title, (screen_width // 2 - title.get_width() // 2, 10))
@@ -432,13 +435,19 @@ class BlackWhiteGame:
         screen.blit(round_text, (screen_width // 2 - round_text.get_width() // 2, 350))
 
         if self.state in [GameState.SETUP_PLAYER1, GameState.SETUP_PLAYER2]:
+
+            if(self.is_ai_mode and self.state == GameState.SETUP_PLAYER2) : 
+                self.state = GameState.PLAYER1_TURN
+
             start_button = pygame.Rect(screen_width // 2 - 75, 470, 150, 50)
             start_button_color = GOLD if start_button.collidepoint(pygame.mouse.get_pos()) else GRAY
             pygame.draw.rect(screen, start_button_color, start_button)
             start_text = main_font.render("NEXT", True, BLACK)
             screen.blit(start_text, (start_button.centerx - start_text.get_width() // 2, start_button.centery - start_text.get_height() // 2 - 2))
             setup_text = main_font.render(f"플레이어 {1 if self.state == GameState.SETUP_PLAYER1 else 2} 타일 배치", True, WHITE)
+
             screen.blit(setup_text, (screen_width // 2 - setup_text.get_width() // 2, 320))
+
         elif self.state in [GameState.PLAYER1_TURN, GameState.PLAYER2_TURN]:
             turn_text = main_font.render(f"플레이어 {1 if self.state == GameState.PLAYER1_TURN else 2}의 차례입니다.", True, WHITE)
             screen.blit(turn_text, (screen_width // 2 - turn_text.get_width() // 2, 380))

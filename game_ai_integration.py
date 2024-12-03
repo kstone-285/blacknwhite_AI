@@ -1,5 +1,8 @@
 import torch
+import numpy as np
 from policy_network import ActorCritic
+from dqn_agent import DQN
+from train_ppo import PPOAgent, PolicyNetwork
 
 
 class PolicyAIPlayer:
@@ -26,3 +29,51 @@ class PolicyAIPlayer:
         
         # 확률적 선택
         return torch.multinomial(masked_probs, 1).item()
+    
+class AIPlayer:
+    def __init__(self, model_path):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = DQN(21, 9).to(self.device)
+        self.model.load_state_dict(torch.load(model_path))
+        self.model.eval()
+        
+    def get_action(self, state, valid_actions):
+        state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+        with torch.no_grad():
+            action_values = self.model(state)
+            
+        valid_action_values = action_values.cpu().numpy()[0]
+        valid_action_values = {action: valid_action_values[action] for action in valid_actions}
+        return max(valid_action_values, key=valid_action_values.get)
+    
+class PPOAIPlayer:
+    def __init__(self, model_path):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # PPOAgent에서의 네트워크와 동일한 구조로 설정
+        self.policy_net = PolicyNetwork(21, 9).to(self.device)
+        self.policy_net.load_state_dict(torch.load(model_path, map_location=self.device))
+        self.policy_net.eval()  # 평가 모드로 설정
+        
+    def get_action(self, state, valid_actions):
+        """
+        주어진 상태(state)와 유효한 행동(valid actions)으로부터 PPO 정책 네트워크를 사용하여 행동을 선택합니다.
+        """
+        state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+        with torch.no_grad():
+            action_probs = self.policy_net(state).squeeze().cpu().numpy()
+        
+        # 유효한 행동들에 대해서만 확률을 필터링
+        valid_action_probs = {action: action_probs[action] for action in valid_actions}
+        total_prob = sum(valid_action_probs.values())
+        
+        # 확률 재정규화
+        if total_prob > 0:
+            valid_action_probs = {k: v / total_prob for k, v in valid_action_probs.items()}
+            actions, probabilities = zip(*valid_action_probs.items())
+            selected_action = np.random.choice(actions, p=probabilities)
+        else:
+            # 모든 유효 행동의 확률이 0인 경우 균등 분포로 선택
+            selected_action = np.random.choice(valid_actions)
+        
+        return selected_action
