@@ -22,7 +22,7 @@
 ## 📺 데모 비디오
 
 [![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/images/bnw.png)](https://youtu.be/-MmGbWzX8nk)
-***사진을 누르면 영상으로 넘어갑니다***
+***(사진을 누르면 영상으로 넘어갑니다)*** <br>
 
 ## ✨ 주요 기능
 - 🤖 **강화학습** 기반의 지능형 AI 플레이어
@@ -33,7 +33,7 @@
 ## 🎯 게임 규칙
 
 [![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/images/bnwrule.png)](https://youtu.be/tffgFa6xFvg)<br>
-***사진을 누르면 영상으로 넘어갑니다***
+***(사진을 누르면 영상으로 넘어갑니다)*** <br>
 
 1. **기본 설정**
 
@@ -93,7 +93,7 @@ PPO 모델을 구현해둔 파일입니다.
 
 ## 🤖 강화학습에 사용된 AI 모델과 고찰, 후기
 
-- **알고리즘**: **Deep Q-Network (DQN)**, **Actor-critic (A2C)**, **Proximal Policy** **Optimization (PPO)**를 사용했습니다.
+- **알고리즘**: **Deep Q-Network (DQN)**, **Actor-critic (A2C)**, **Proximal Policy** **Optimization** (PPO)를 사용했습니다.
 - **학습 데이터**: 각 모델마다 평균 **40,000+** 에피소드를 두 AI가 대전하며 학습했습니다.
 - **각 AI 모델의 특징**:
   - ## ***DQN***
@@ -149,7 +149,7 @@ PPO 모델을 구현해둔 파일입니다.
 
   - ## ***PPO***
 
-   <img width = "700" height = "300" src="https://github.com/user-attachments/assets/41d8a537-c848-4b19-b43b-9cd8af22062d">
+    <img width = "740" height = "300" src="https://github.com/user-attachments/assets/41d8a537-c848-4b19-b43b-9cd8af22062d">
 
     - PPO는 **정책 기반 학습의 효율성과 안정성을 극대화**한 알고리즘으로, A2C의 상위호환 격인 모델이라 판단해 적용해보았습니다.
       PPO는 현재 주어진 데이터를 기반으로 policy의 performance를 **최대한 빠르게 향상**시키면서, 동시에 **overshooting은 막고자** 하는 모델입니다.
