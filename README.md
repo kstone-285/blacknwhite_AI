@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12%2B-blue)]()
 [![Pygame](https://img.shields.io/badge/Pygame-2.5.2-green)]()
 
-***더 지니어스*** 시리즈의 데스매치 게임 **"흑과백"**을 파이썬으로 구현한 프로젝트입니다. **강화학습으로 훈련된 AI**와 대결하며 당신의 전략을 시험해보세요!
+***더 지니어스*** 시리즈의 데스매치 게임 "***흑과백***"을 파이썬으로 구현한 프로젝트입니다. **강화학습으로 훈련된 AI**와 대결하며 당신의 전략을 시험해보세요!
 
 ## 📌 목차
 - [소개](#-소개)
@@ -32,7 +32,7 @@
 
 ## 🎯 게임 규칙
 
-[![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/images/bnwrule.png)](https://youtu.be/tffgFa6xFvg)
+[![Watch the video on youtube](https://github.com/kstone-285/oss_project/blob/main/images/bnwrule.png)](https://youtu.be/tffgFa6xFvg)<br>
 ***사진을 누르면 영상으로 넘어갑니다***
 
 1. **기본 설정**
@@ -59,7 +59,7 @@
 
 ## 🎮 실행 방법
 
-1. 리포지토리에서 blacknwhite.py 파일 다운로드
+### 1. 리포지토리에서 blacknwhite.py 파일 다운로드 후 실행
 ```python
 python blacknwhite.py
 ```
@@ -67,7 +67,7 @@ python blacknwhite.py
    - 2P 대전 모드
    - 둘 중 원하는 모드를 선택하여 플레이하시면 됩니다.
 
-2. 게임파일 실행 전 설치해주셔야 하는 것들입니다.  
+### 2. 게임파일 실행 전 설치해주셔야 하는 것들입니다.  
 ```python
 pip install numpy torch pygame
 ```
@@ -93,7 +93,7 @@ PPO 모델을 구현해둔 파일입니다.
 
 ## 🤖 강화학습에 사용된 AI 모델과 고찰, 후기
 
-- **알고리즘**: **Deep Q-Network (DQN)**, **Actor-critic (A2C)**, **Proximal Policy Optimization (PPO)**를 사용했습니다.
+- **알고리즘**: **Deep Q-Network (DQN)**, **Actor-critic (A2C)**, **Proximal Policy** **Optimization (PPO)**를 사용했습니다.
 - **학습 데이터**: 각 모델마다 평균 **40,000+** 에피소드를 두 AI가 대전하며 학습했습니다.
 - **각 AI 모델의 특징**:
   - ## ***DQN***
@@ -149,7 +149,7 @@ PPO 모델을 구현해둔 파일입니다.
 
   - ## ***PPO***
 
-   <img width = "800" height = "260" src="https://github.com/user-attachments/assets/41d8a537-c848-4b19-b43b-9cd8af22062d">
+   <img width = "700" height = "300" src="https://github.com/user-attachments/assets/41d8a537-c848-4b19-b43b-9cd8af22062d">
 
     - PPO는 **정책 기반 학습의 효율성과 안정성을 극대화**한 알고리즘으로, A2C의 상위호환 격인 모델이라 판단해 적용해보았습니다.
       PPO는 현재 주어진 데이터를 기반으로 policy의 performance를 **최대한 빠르게 향상**시키면서, 동시에 **overshooting은 막고자** 하는 모델입니다.
