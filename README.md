@@ -60,7 +60,7 @@
 ## 🎮 실행 방법
 
 ### 1. 리포지토리에서 blacknwhite.py 파일 다운로드 후 실행
-```python
+```bash
 python blacknwhite.py
 ```
    - AI 대전 모드
@@ -68,7 +68,7 @@ python blacknwhite.py
    - 둘 중 원하는 모드를 선택하여 플레이하시면 됩니다.
 
 ### 2. 게임파일 실행 전 설치해주셔야 하는 것들입니다.  
-```python
+```bash
 pip install numpy torch pygame
 ```
 ```
@@ -86,6 +86,7 @@ PPO 모델을 구현해둔 파일입니다.
 
 📁trained_AI/*
 학습된 모델들의 pth 파일입니다. 위 세 모델의 pth 파일이 모두 담겨있습니다.
+대결해보고 싶은 AI 파일을 경로를 지정해 클래스를 바꾸며 적용시키시면 됩니다.
 
 📝images/HeirofLightBold.ttf
 게임에 적용된 폰트 파일입니다.
@@ -98,24 +99,79 @@ PPO 모델을 구현해둔 파일입니다.
 - **각 AI 모델의 특징**:
   - ## ***DQN***
 
-    <img width = "700" height = "260" src="https://github.com/user-attachments/assets/b6b910be-e1df-42e8-afe9-a840a7909a91">
+    <img width = "700" height = "260" src="https://github.com/user-attachments/assets/b6b910be-e1df-42e8-afe9-a840a7909a91"> <br>
+    ***(본인의 경우는 MSE loss function을 사용했습니다.)***
 
     - **DQN**은 가장 처음 적용해본 모델로, 가장 접근성이 좋고 배우기 쉬운 모델이었기에 선택했습니다.<br>
-    그러나 DQN은 흑과백과 같은 **확률기반, 장기전략**이 중요한 게임에서는 적합하지 않았습니다.<br>
+    그러나 DQN은 흑과백과 같은 **실시간 확률기반, 장기전략**이 중요한 게임에서는 적합하지 않았습니다.<br>
     해당 이유는 크게 3가지 입니다.  
 
       1. DQN은 한 번의 행동에 따른 **즉각적인 보상을 기반으로 학습**하는 경향이 있었습니다. <br><br>
          이런 류의 게임은 개별 행동에 대한 리워드보다는 전체 전략, 상대방보다 얼마나 작은 차이로 이기고 큰차이로 지는지에 대한 보상이 중요합니다.<br><br>
-      2. **확률적인 요소**와 **심리전 요소**의 **미반영**이 있었습니다.<br><br>
-         매 라운드, 매 에피소드마다 상대방의 행동은 확률적으로 변화하고, 심리패턴이나 블러핑에 대한 반응 또한 존재해야 합니다.  
-         DQN은 이를 확률적으로 학습하지 않고, 단순하게 **평균적인 패턴에 최적화**되는 경향이 있었습니다. 추가로, 첫 AI다 보니 상대방의 패를 항상 random으로 돌려 더욱 제대로 학습하지 못했습니다.<br><br>
+      2. **확률적인 요소**와 **심리전 요소**가 행동으로의 **소극적 반영**이 있었습니다.<br><br>
+         매 라운드, 매 에피소드마다 상대방의 행동은 확률적으로 변화하기에, 심리패턴이나 블러핑에 대한 반응 또한 존재해야 합니다.  
+         DQN은 e-greedy로 학습하긴하나, 최종적으로는 **고승률 패턴에 최적화**되는 경향이 있었습니다.  
+         아래는 에이전트의 행동 설정에 대한 주요 코드입니다.
+         ```python
+         self.epsilon = 1.0
+         self.epsilon_min = 0.01
+         self.epsilon_decay = 0.995
+
+         def act(self, state, valid_actions):
+            
+            if random.random() <= self.epsilon:
+                  return random.choice(valid_actions)
+            
+            # 현재 상태에 대한 Q-값 예측
+            state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                  action_values = self.model(state)
+            
+            # 유효한 액션 중 최고 가치 액션 선택
+            valid_action_values = action_values.cpu().numpy()[0]
+            valid_action_values = {action: valid_action_values[action] for action in valid_actions}
+            return max(valid_action_values, key=valid_action_values.get)
+         ```
+         <br><br>
       3. **에피소드 기반 최적화**를 진행하기 때문입니다.<br><br>
          DQN은 일반적으로 **마르코프 결정 과정**을 기반으로 설계되었고, 이는 게임의 전체적인 맥락을 파악하지 못하며, 해당 에피소드 내에서만 학습하는 결과를 낳습니다.
-         이로인해 고정된 패턴에 갇혀 학습을 진행한 결과가 일련의 **선택순서**였고, 이는 AI 모델에 적합하지 않다 판단하여 폐기했습니다.<br><br>
+         이로인해 고정된 패턴에 갇혀 학습을 진행한 결과가 일련의 **선택순서**였고, 이는 AI 모델에 적합하지 않다 판단하여 폐기했습니다.
+         위의 코드를 보아도, e-greedy로는 한계가 존재하고, 전략의 다양성 자체가 부족해 예측을 제대로 하지 못했습니다.
+         이를 개선하기 위해서는 **softmax**를 이용하거나, **엔트로피**를 이용한 다양성을 부여해야 할 것 같습니다.
+         ```python
+         def replay(self, batch_size):
+
+            if len(self.memory) < batch_size:
+                  return
+            
+            # 무작위로 미니배치 샘플링
+            minibatch = random.sample(self.memory, batch_size)
+            
+            # 배치 데이터를 텐서로 변환
+            ...
+            
+            current_q_values = self.model(states).gather(1, actions.unsqueeze(1))
+            next_q_values = self.target_model(next_states).max(1)[0].detach()
+            
+            # 목표 Q-값 계산 (벨만 방정식)
+            target_q_values = rewards + (1 - dones) * self.gamma * next_q_values
+            
+            # 손실 함수 계산 및 모델 업데이트
+            loss = nn.MSELoss()(current_q_values.squeeze(), target_q_values)
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+            
+            # 탐험률 점진적 감소
+            if self.epsilon > self.epsilon_min:
+                  self.epsilon *= self.epsilon_decay
+         ```
+         <br><br>
 
   - ## ***A2C***
     
-    <img width = "700" height = "260" src="https://github.com/user-attachments/assets/eb6f67ab-4c3e-433e-af1c-72bb137391f1">
+    <img width = "700" height = "260" src="https://github.com/user-attachments/assets/eb6f67ab-4c3e-433e-af1c-72bb137391f1"> <br>
+    ***(본인의 경우는 log loss function을 사용했습니다.)***
 
     - **A2C**는 **정책 기반 학습**과 **가치 기반 학습**을 결합한 알고리즘으로, DQN보다는 확률을 사용하기에 해당 게임에 더 적합하다고 판단해 적용했습니다.  
       이 모델은 특히 **확률적 요소**가 많고 **장기적인 전략**이 중요한 흑과백 게임에서 더욱 효과적이었습니다.  
@@ -123,9 +179,23 @@ PPO 모델을 구현해둔 파일입니다.
 
       - **장점:**
          1. **장기적인 전략 학습**  <br><br>
+            ```python
+            def forward(self, state):
+               
+               x = F.relu(self.fc1(state))
+               x = F.relu(self.fc2(x))
+               
+               # 행동 확률 분포 생성
+               action_probs = F.softmax(self.actor(x), dim=-1)
+               
+               # 상태 가치 추정
+               state_value = self.critic(x)
+               
+               return action_probs, state_value
+            ```
             A2C는 **정책 네트워크**와 **가치 네트워크**를 동시에 학습하여, **장기적인 보상**을 고려한 전략을 세울 수 있습니다.  
             게임과 같은 **확률적, 전략적 요소**를 고려하는 데 있어 유리하며, 한 번의 행동에 대한 보상뿐만 아니라 **전체 게임의 승리**를 목표로 학습합니다.  
-            이로 인해 **개별 행동**이 아닌 **전체적인 전략**을 학습하는 데 유리합니다.  
+            이로 인해 **개별 행동**이 아닌 **전체적인 전략**을 학습하는 데 유리합니다.
 
          2. **정책 기반 학습의 장점**  <br><br>
             A2C는 **정책 기반 학습**을 사용하여 **지속적인 policy의 개선**이 가능했습니다.  
@@ -149,14 +219,40 @@ PPO 모델을 구현해둔 파일입니다.
 
   - ## ***PPO***
 
-    <img width = "740" height = "300" src="https://github.com/user-attachments/assets/41d8a537-c848-4b19-b43b-9cd8af22062d">
+    <img width = "740" height = "300" src="https://github.com/user-attachments/assets/41d8a537-c848-4b19-b43b-9cd8af22062d"> <br>
+    ***(본인의 경우는 loss function을 surrogate loss function을 사용했습니다.)***
 
     - PPO는 **정책 기반 학습의 효율성과 안정성을 극대화**한 알고리즘으로, A2C의 상위호환 격인 모델이라 판단해 적용해보았습니다.
       PPO는 현재 주어진 데이터를 기반으로 policy의 performance를 **최대한 빠르게 향상**시키면서, 동시에 **overshooting은 막고자** 하는 모델입니다.
       해당 모델의 **장점**과 **한계**는 다음과 같습니다.
 
       - **장점:**
-
+         ```python
+         def update(self):
+            # 메모리에서 상태, 행동, 보상 추출
+            states = torch.FloatTensor(self.memory.states).to(self.device)
+            actions = torch.LongTensor(self.memory.actions).to(self.device)
+            
+            # 반환값과 이점 계산
+            returns = self.compute_returns(rewards)
+            advantages = returns - self.value_net(states)
+            
+            # 정책 네트워크 업데이트
+            action_probs = self.policy_net(states)
+            ratio = action_probs.gather(1, actions) / action_probs.gather(1, actions).detach()
+            
+            # PPO 클리핑 서로게이트 손실
+            policy_loss = -torch.min(
+               ratio * advantages, 
+               torch.clamp(ratio, 1-self.epsilon, 1+self.epsilon) * advantages
+            ).mean()
+            
+            # 네트워크 파라미터 업데이트
+            self.optimizer.zero_grad()
+            policy_loss.backward()
+            self.optimizer.step()
+         ```
+         <br>
          1. **정책 업데이트 안정성** <br><br>
             PPO는 **클리핑(clipping)** 기법을 사용해, policy network의 **업데이트 폭을 제한**합니다.
             이로 인해, policy의 급격한 변화를 방지하면서 안정적인 학습이 가능했습니다.
