@@ -1,18 +1,21 @@
 import torch
 import numpy as np
-from policy_network import ActorCritic
-from dqn_agent import DQN
-from train_ppo import PPOAgent, PolicyNetwork
+from a2c.policy_network import ActorCritic
+from dqn.dqn_agent import DQN
+from ppo.train_ppo import PPOAgent, PolicyNetwork
 
 
 class PolicyAIPlayer:
+
     def __init__(self, model_path):
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = ActorCritic(21, 9).to(self.device)
         self.model.load_state_dict(torch.load(model_path))
         self.model.eval()
     
     def get_action(self, state, valid_actions):
+
         state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         with torch.no_grad():
             action_probs, _ = self.model(state)
@@ -31,13 +34,16 @@ class PolicyAIPlayer:
         return torch.multinomial(masked_probs, 1).item()
     
 class AIPlayer:
+
     def __init__(self, model_path):
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = DQN(21, 9).to(self.device)
         self.model.load_state_dict(torch.load(model_path))
         self.model.eval()
         
     def get_action(self, state, valid_actions):
+
         state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         with torch.no_grad():
             action_values = self.model(state)
@@ -47,18 +53,16 @@ class AIPlayer:
         return max(valid_action_values, key=valid_action_values.get)
     
 class PPOAIPlayer:
+
     def __init__(self, model_path):
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
-        # PPOAgent에서의 네트워크와 동일한 구조로 설정
         self.policy_net = PolicyNetwork(21, 9).to(self.device)
         self.policy_net.load_state_dict(torch.load(model_path, map_location=self.device))
-        self.policy_net.eval()  # 평가 모드로 설정
+        self.policy_net.eval()
         
     def get_action(self, state, valid_actions):
-        """
-        주어진 상태(state)와 유효한 행동(valid actions)으로부터 PPO 정책 네트워크를 사용하여 행동을 선택합니다.
-        """
+
         state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         with torch.no_grad():
             action_probs = self.policy_net(state).squeeze().cpu().numpy()

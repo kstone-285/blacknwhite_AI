@@ -6,7 +6,10 @@ from collections import deque
 import random
 
 class DQN(nn.Module):
+
     def __init__(self, input_size, output_size):
+
+        # 네트워크 구조
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(input_size, 128)
         self.fc2 = nn.Linear(128, 64)
@@ -18,7 +21,10 @@ class DQN(nn.Module):
         return self.fc3(x)
 
 class DQNAgent:
+
     def __init__(self, state_size, action_size):
+
+        # 하이퍼파라미터 초기화
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
@@ -35,12 +41,15 @@ class DQNAgent:
         
         self.update_target_model()
         
+    # 타겟 모델을 메인 모델의 가중치로 업데이트
     def update_target_model(self):
         self.target_model.load_state_dict(self.model.state_dict())
-        
+    
+    # 새로운 경험 추가
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
-        
+    
+    # 액션 선택 함수
     def act(self, state, valid_actions):
         if random.random() <= self.epsilon:
             return random.choice(valid_actions)
@@ -53,7 +62,8 @@ class DQNAgent:
         valid_action_values = action_values.cpu().numpy()[0]
         valid_action_values = {action: valid_action_values[action] for action in valid_actions}
         return max(valid_action_values, key=valid_action_values.get)
-        
+    
+    # 경험 리플레이 및 Q-function 업데이트
     def replay(self, batch_size):
         if len(self.memory) < batch_size:
             return
@@ -74,5 +84,6 @@ class DQNAgent:
         loss.backward()
         self.optimizer.step()
         
+        # 탐험률 점진적 감소
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay

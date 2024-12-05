@@ -3,6 +3,8 @@ from environment import BlackWhiteEnv
 from dqn_agent import DQNAgent
 
 def get_valid_actions(env, player_tiles):
+
+    # 사용 가능한 타일을 받는 함수
     valid_actions = []
     for tile, used in player_tiles:
         if not used:
@@ -10,6 +12,7 @@ def get_valid_actions(env, player_tiles):
     return valid_actions
 
 def train_agents():
+
     env = BlackWhiteEnv()
     state_size = 21  # 9(내 타일) + 9(상대 타일) + 3(라운드,점수)
     action_size = 9  # 0-8 타일 선택
@@ -26,17 +29,17 @@ def train_agents():
         total_reward2 = 0
         
         while True:
-            # Player 1's turn
+            # 플레이어1 턴
             valid_actions1 = get_valid_actions(env, env.player1_tiles)
             action1 = agent1.act(state, valid_actions1)
             
-            # Player 2's turn
+            # 플레이어2 턴
             valid_actions2 = get_valid_actions(env, env.player2_tiles)
             action2 = agent2.act(state, valid_actions2)
             
             next_state, reward, done = env.step(action2, action1)
             
-            # Store experiences
+            # 경험을 저장
             agent1.remember(state, action1, -reward, next_state, done)
             agent2.remember(state, action2, reward, next_state, done)
             
@@ -48,7 +51,7 @@ def train_agents():
                 print(f"Episode: {e+1}/{n_episodes}, Score: {env.player1_score}-{env.player2_score}")
                 break
                 
-            # Training
+            # 트레이닝
             agent1.replay(batch_size)
             agent2.replay(batch_size)
             

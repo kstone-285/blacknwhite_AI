@@ -18,9 +18,9 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Black and White")
 
 # Fonts
-title_font = pygame.font.Font("C:\\Users\\Kstone\\mypractice\\opensourceproj\\HeirofLightBold.ttf", 40)
-main_font = pygame.font.Font("C:\\Users\\Kstone\\mypractice\\opensourceproj\\HeirofLightBold.ttf", 20)
-score_font = pygame.font.Font("C:\\Users\\Kstone\\mypractice\\opensourceproj\\HeirofLightBold.ttf", 20)
+title_font = pygame.font.Font("images\\HeirofLightBold.ttf", 40)
+main_font = pygame.font.Font("images\\HeirofLightBold.ttf", 20)
+score_font = pygame.font.Font("images\\HeirofLightBold.ttf", 20)
 
 # Game states
 class GameState:
@@ -279,7 +279,7 @@ class BlackWhiteGame:
 def main():
 
     pygame.mixer.init()
-    pygame.mixer.music.load('y2mate.mp3')
+    pygame.mixer.music.load('images\\y2mate.mp3')
     pygame.mixer.music.set_volume(0.15)
     pygame.mixer.music.play(-1)
 

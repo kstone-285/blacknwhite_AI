@@ -6,7 +6,9 @@ from collections import deque
 import random
 
 class ActorCritic(nn.Module):
+
     def __init__(self, state_size, action_size):
+
         super(ActorCritic, self).__init__()
         # 공통 특성 추출 레이어
         self.fc1 = nn.Linear(state_size, 128)
@@ -19,6 +21,7 @@ class ActorCritic(nn.Module):
         self.critic = nn.Linear(64, 1)
     
     def forward(self, state):
+
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         
@@ -31,7 +34,9 @@ class ActorCritic(nn.Module):
         return action_probs, state_value
 
 class PolicyGradientAgent:
+
     def __init__(self, state_size, action_size):
+
         self.state_size = state_size
         self.action_size = action_size
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,6 +55,7 @@ class PolicyGradientAgent:
         self.values = []
 
     def act(self, state, valid_actions):
+
         # 입력 상태를 텐서로 변환
         if not isinstance(state, torch.Tensor):
             state = torch.FloatTensor(state)
@@ -59,9 +65,10 @@ class PolicyGradientAgent:
 
         self.model.eval()
         with torch.no_grad():
+
             action_probs, state_value = self.model(state)
             
-            # 유효하지 않은 액션의 확률을 0으로 만듦
+            # 유효하지 않은 액션의 확률을 0으로 만들어줌
             action_probs = action_probs.squeeze()
             mask = torch.zeros_like(action_probs)
             for action in valid_actions:
@@ -90,6 +97,7 @@ class PolicyGradientAgent:
         return action.item()
 
     def process_episode(self, final_reward):
+
         self.model.train()
         
         # 리턴 계산
@@ -102,31 +110,22 @@ class PolicyGradientAgent:
         # 텐서로 변환
         returns = torch.FloatTensor(returns).to(self.device)
         
-        # states를 하나의 배치로 만들기
         states_tensor = torch.cat(self.states)
-        
-        # Forward pass
         action_probs, state_values = self.model(states_tensor)
-        
-        # Advantage 계산
         advantages = returns - state_values.squeeze()
         
-        # Policy loss 계산 (log_probs 사용)
+        # loss 계산
         log_probs_tensor = torch.stack(self.log_probs)
         policy_loss = -(log_probs_tensor * advantages.detach()).mean()
-        
-        # Value loss 계산
         value_loss = F.mse_loss(state_values.squeeze(), returns)
-        
-        # 총 손실
         loss = policy_loss + 0.5 * value_loss
         
-        # 역전파 및 최적화
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
     def end_episode(self, final_reward):
+
         try:
             self.process_episode(final_reward)
         except Exception as e:
@@ -135,6 +134,7 @@ class PolicyGradientAgent:
             self.clear_memory()
 
     def clear_memory(self):
+
         self.states = []
         self.actions = []
         self.rewards = []
@@ -142,4 +142,5 @@ class PolicyGradientAgent:
         self.values = []
 
     def add_reward(self, reward):
+        
         self.rewards.append(reward)

@@ -2,10 +2,12 @@ import numpy as np
 import torch
 
 class BlackWhiteEnv:
+
     def __init__(self):
         self.reset()
 
     def reset(self):
+
         # 각 플레이어의 타일 상태 (0-8 숫자, 사용 여부)
         tiles = np.arange(9)
         np.random.shuffle(tiles)  # 타일 무작위 배치
@@ -23,6 +25,7 @@ class BlackWhiteEnv:
         return self._get_state()
         
     def _get_state(self):
+        
         # 상태: [내 남은 타일, 상대 사용한 타일, 현재 라운드, 내 점수, 상대 점수]
         state = []
         # 내 남은 타일들

@@ -7,11 +7,13 @@ import math
 from environment import BlackWhiteEnv
 
 def get_valid_actions(env, player_tiles):
-    """유효한 행동(사용되지 않은 타일) 반환"""
+    
+    # 사용 가능한 타일 반환
     valid_actions = [tile for tile, used in player_tiles if not used]
     return valid_actions
 
 class PolicyNetwork(nn.Module):
+
     def __init__(self, state_dim, action_dim):
         super(PolicyNetwork, self).__init__()
         self.fc1 = nn.Linear(state_dim, 128)
@@ -24,6 +26,7 @@ class PolicyNetwork(nn.Module):
         return F.softmax(self.fc3(x), dim=1)
 
 class ValueNetwork(nn.Module):
+
     def __init__(self, state_dim):
         super(ValueNetwork, self).__init__()
         self.fc1 = nn.Linear(state_dim, 128)
@@ -36,6 +39,7 @@ class ValueNetwork(nn.Module):
         return self.fc3(x)
 
 class PPOAgent:
+
     def __init__(self, state_dim, action_dim, learning_rate=3e-4, 
                  gamma=0.99, epsilon=0.2, epochs=3, entropy_coef=0.01):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -274,7 +278,7 @@ class SelfPlayTrainer:
                     self.best_model2 = self.agent2.policy_net.state_dict()
                     self.best_win_rate = current_win_rate2
                 
-                # 성능 저하 시 최적 모델로 리셋
+                # 성능 과도하게 저하 시 최적 모델로 리셋
                 if current_win_rate1 < 0.2:
                     self.agent1.policy_net.load_state_dict(self.best_model2)
                 if current_win_rate2 < 0.2:
@@ -306,7 +310,7 @@ class SelfPlayTrainer:
         self.save_models(num_episodes)
     
     def save_models(self, episode):
-        """학습된 모델 저장"""
+
         try:
             torch.save(self.agent1.policy_net.state_dict(), 'agent1_policy_ppo.pth')
             torch.save(self.agent2.policy_net.state_dict(), f'agent2_policy_ppo.pth')
@@ -314,7 +318,6 @@ class SelfPlayTrainer:
         except Exception as e:
             print(f"Error saving model: {str(e)}")
 
-# 사용 예시
 if __name__ == "__main__":
     
     trainer = SelfPlayTrainer(BlackWhiteEnv)
