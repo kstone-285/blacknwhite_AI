@@ -37,7 +37,7 @@
 
 1. **기본 설정**
 
-   ![tiles](https://github.com/user-attachments/assets/0ba36cd4-1cb1-47e7-8e0d-c7f2daf1da98)
+![tiles](https://github.com/user-attachments/assets/0ba36cd4-1cb1-47e7-8e0d-c7f2daf1da98)
 
    - 각 플레이어는 **0-8** 까지의 숫자 타일을 보유합니다.
    - 보유한 타일은 그 숫자에따라 **흑**(짝수타일)과 **백**(홀수타일)로 구분됩니다.
@@ -59,7 +59,7 @@
 
 ## 🎮 실행 방법
 
-### 1. 리포지토리에서 blacknwhite.py 파일 다운로드 후 실행
+### 1. 리포지토리에서 📝blacknwhite.py 파일 다운로드 후 실행
 ```bash
 python blacknwhite.py
 ```
@@ -92,6 +92,13 @@ PPO 모델을 구현해둔 파일입니다.
 게임에 적용된 폰트 파일입니다.
 ```
 
+### 3. 게임의 극초창기 버전을 즐기고 싶다면?
+```bash
+python blacknwhite_beta.py
+```
+**📝blacknwhite_beta.py** 를 다운 받으신 후, 플레이 해보세요! 상대는 **완전히 random한 선택**을 합니다.
+
+
 ## 🤖 강화학습에 사용된 AI 모델과 고찰, 후기
 
 - **알고리즘**: **Deep Q-Network (DQN)**, **Actor-critic (A2C)**, **Proximal Policy** **Optimization** (PPO)를 사용했습니다.
@@ -111,7 +118,7 @@ PPO 모델을 구현해둔 파일입니다.
       2. **확률적인 요소**와 **심리전 요소**가 행동으로의 **소극적 반영**이 있었습니다.<br><br>
          매 라운드, 매 에피소드마다 상대방의 행동은 확률적으로 변화하기에, 심리패턴이나 블러핑에 대한 반응 또한 존재해야 합니다.  
          DQN은 e-greedy로 학습하긴하나, 최종적으로는 **고승률 패턴에 최적화**되는 경향이 있었습니다.  
-         아래는 에이전트의 행동 설정에 대한 주요 코드입니다.
+         아래는 에이전트의 행동 설정에 대한 주요 코드입니다. <br>
          ```python
          self.epsilon = 1.0
          self.epsilon_min = 0.01
@@ -132,12 +139,12 @@ PPO 모델을 구현해둔 파일입니다.
             valid_action_values = {action: valid_action_values[action] for action in valid_actions}
             return max(valid_action_values, key=valid_action_values.get)
          ```
-         <br><br>
+         <br>
       3. **에피소드 기반 최적화**를 진행하기 때문입니다.<br><br>
          DQN은 일반적으로 **마르코프 결정 과정**을 기반으로 설계되었고, 이는 게임의 전체적인 맥락을 파악하지 못하며, 해당 에피소드 내에서만 학습하는 결과를 낳습니다.
          이로인해 고정된 패턴에 갇혀 학습을 진행한 결과가 일련의 **선택순서**였고, 이는 AI 모델에 적합하지 않다 판단하여 폐기했습니다.
          위의 코드를 보아도, e-greedy로는 한계가 존재하고, 전략의 다양성 자체가 부족해 예측을 제대로 하지 못했습니다.
-         이를 개선하기 위해서는 **softmax**를 이용하거나, **엔트로피**를 이용한 다양성을 부여해야 할 것 같습니다.
+         이를 개선하기 위해서는 **softmax**를 이용하거나, **엔트로피**를 이용한 다양성을 부여해야 할 것 같습니다.<br>
          ```python
          def replay(self, batch_size):
 
@@ -166,7 +173,6 @@ PPO 모델을 구현해둔 파일입니다.
             if self.epsilon > self.epsilon_min:
                   self.epsilon *= self.epsilon_decay
          ```
-         <br><br>
 
   - ## ***A2C***
     
@@ -178,7 +184,7 @@ PPO 모델을 구현해둔 파일입니다.
       당연히 DQN보다는 성능이 좋았지만, 게임에 적용했을 때의 **장점**과 **한계**는 다음과 같습니다.  
 
       - **장점:**
-         1. **장기적인 전략 학습**  <br><br>
+         1. **장기적인 전략 학습** 
             ```python
             def forward(self, state):
                
@@ -193,6 +199,7 @@ PPO 모델을 구현해둔 파일입니다.
                
                return action_probs, state_value
             ```
+            <br>
             A2C는 **정책 네트워크**와 **가치 네트워크**를 동시에 학습하여, **장기적인 보상**을 고려한 전략을 세울 수 있습니다.  
             게임과 같은 **확률적, 전략적 요소**를 고려하는 데 있어 유리하며, 한 번의 행동에 대한 보상뿐만 아니라 **전체 게임의 승리**를 목표로 학습합니다.  
             이로 인해 **개별 행동**이 아닌 **전체적인 전략**을 학습하는 데 유리합니다.
@@ -214,7 +221,7 @@ PPO 모델을 구현해둔 파일입니다.
             **흑과백** 게임에서는 상대방의 전략을 예측하는 것이 중요한데, **탐험 부족**은 이를 방해할 수 있습니다.  
 
          3. **복잡한 Hyper parameter 설정**  <br><br>
-            A2C는 **Hyper parameter**에 민감한 알고리즘입니다. **학습률**, **탐험 비율**, **배치 크기** 등 다양한 파라미터들이 **모델의 성능에 큰 영향을 미칩니다.**  
+            A2C는 **Hyper parameter**에 민감한 알고리즘입니다. **학습률**, **탐험 비율**, **배치 크기** 등 다양한 hyper parameter들이 **모델의 성능에 큰 영향을 미칩니다.**  
             **흑과백**과 같은 게임에서 이를 잘 조정하지 않으면 **훈련이 제대로 되지 않거나 성능이 떨어지는 결과**를 초래할 수 있었습니다.
 
   - ## ***PPO***
@@ -230,8 +237,9 @@ PPO 모델을 구현해둔 파일입니다.
          ```python
          def update(self):
             # 메모리에서 상태, 행동, 보상 추출
-            states = torch.FloatTensor(self.memory.states).to(self.device)
-            actions = torch.LongTensor(self.memory.actions).to(self.device)
+            states = torch.FloatTensor([m[0] for m in self.memory]).to(self.device)
+            actions = torch.LongTensor([m[1] for m in self.memory]).unsqueeze(1).to(self.device)
+            returns = self.compute_returns(rewards, dones)
             
             # 반환값과 이점 계산
             returns = self.compute_returns(rewards)
@@ -241,7 +249,7 @@ PPO 모델을 구현해둔 파일입니다.
             action_probs = self.policy_net(states)
             ratio = action_probs.gather(1, actions) / action_probs.gather(1, actions).detach()
             
-            # PPO 클리핑 서로게이트 손실
+            # PPO 클리핑을 이용한 손실 계산
             policy_loss = -torch.min(
                ratio * advantages, 
                torch.clamp(ratio, 1-self.epsilon, 1+self.epsilon) * advantages
@@ -253,6 +261,7 @@ PPO 모델을 구현해둔 파일입니다.
             self.optimizer.step()
          ```
          <br>
+         
          1. **정책 업데이트 안정성** <br><br>
             PPO는 **클리핑(clipping)** 기법을 사용해, policy network의 **업데이트 폭을 제한**합니다.
             이로 인해, policy의 급격한 변화를 방지하면서 안정적인 학습이 가능했습니다.
@@ -283,11 +292,13 @@ PPO 모델을 구현해둔 파일입니다.
 
 - ## **결론** 
 
-   - 세 가지 중에서는 **PPO 모델과 A2C 모델**을 상대할 때 어려움을 느꼈습니다. 흑과백은 개인적으로 잘한다고 생각해 **80~90% 이상의 승률을 생각**했으나, 약 **60~70%의 승률**을 기록했습니다.  
-     생각보다 **예상 외의 선택**을 하는 경우도 잦았고, **압도적으로 지는 판**도 있었습니다. **반대로 매우 쉽게 이기는 판**도 있었습니다. 아마 제가 AI 상대법을 학습하지 않았나 싶습니다.  
+   - 세 가지 중에서는 **PPO 모델과 A2C 모델**을 상대할 때 어려움을 느꼈습니다. 흑과백은 개인적으로 자부해서  
+     **80~90% 이상의 승률을 생각**했으나, 약 **60~70%의 승률**을 기록했습니다.  
+     생각보다 **예상 외의 선택**을 하는 경우도 잦았고, **압도적으로 지는 판**도 있었습니다. **반대로 매우 쉽게 이기는 판**도 있었습니다. 
+     그 부분은 아마 제가 AI 상대하는 법을 학습하지 않았나 싶습니다.  
      개인적으로는 알파고의 근간인 **몬테 카를로 트리 서치를 활용한 모델링**도 해보고 싶었으나,  
      너무 복잡하여서 공부한 다음에 해야겠다는 생각이 들어 **추후에 evaluation하며 진행**해보려 합니다.  
-     강화학습에 대해 더 깊게 공부하여서 최적의 hyper parameter를 구하는 방법도 적용해 보고 싶습니다.
+     강화학습에 대해 더 깊게 공부하여서 최적의 hyper parameter를 구하는 방법도 배워보고 싶습니다.
      
 
 ## 🛠 기술 스택
@@ -305,7 +316,8 @@ PPO 모델을 구현해둔 파일입니다.
 
 ## 📝 참조
 
-- https://www.pygame.org/wiki/tutorials?parent= (pygame에 대한 공부)
-- https://ai-com.tistory.com/ (강화학습 모델에 대한 공부)
-- https://velog.io/@uonmf97/ (강화학습 모델에 대한 공부)
-- https://blog.quantylab.com/rl.html (강화학습 모델 사진 참조)
+- https://www.pygame.org/wiki/tutorials?parent= (**pygame**에 대한 공부)
+- https://ai-com.tistory.com/ (**강화학습** 모델에 대한 공부)
+- https://velog.io/@uonmf97/ (**강화학습** 모델에 대한 공부)
+- https://blog.quantylab.com/rl.html (**강화학습** 모델 사진 참조)
+- **Thanks for 🤖Chat-GPT🤖 a lot!**
