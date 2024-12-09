@@ -5,10 +5,8 @@ import time
 import numpy as np
 from game_ai_integration import PolicyAIPlayer, AIPlayer, PPOAIPlayer
 
-# Initialize pygame
 pygame.init()
 
-# Colors
 DARK_RED = (139, 0, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -16,18 +14,15 @@ GOLD = (255, 215, 0)
 GRAY = (128, 128, 128)
 LIGHT_RED = (220, 20, 60)
 
-# Screen setup
 screen_width, screen_height = 1000, 800
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Black and White")
 
-# Fonts
 title_font = pygame.font.Font("images\\HeirofLightBold.ttf", 40)
 main_font = pygame.font.Font("images\\HeirofLightBold.ttf", 20)
 score_font = pygame.font.Font("images\\HeirofLightBold.ttf", 20)
 large_font = pygame.font.Font("images\\HeirofLightBold.ttf", 80)
 
-# Game states
 class GameState:
     MAIN_MENU = 0
     SETUP_PLAYER1 = 1
@@ -38,15 +33,17 @@ class GameState:
     ROUND_END = 6
     GAME_OVER = 7
 
-# Animation parameters
 MOVE_SPEED = 4
 CENTER_X = screen_width // 2 - 40
 PLAYER1_CENTER_Y = screen_height // 2 + 50
 PLAYER2_CENTER_Y = screen_height // 2 - 170
 CARD_VERTICAL_GAP = 120
 
+# 타일 클래스
 class Tile:
+
     def __init__(self, number, is_black, is_player1=True):
+
         self.number = number
         self.is_black = is_black
         self.is_player1 = is_player1
@@ -56,7 +53,9 @@ class Tile:
         self.target_pos = None
         self.used = False
 
+    # 타일 이동
     def move_to_target(self):
+
         if self.target_pos:
             if abs(self.rect.y - self.target_pos[1]) > MOVE_SPEED:
                 direction = 1 if self.target_pos[1] > self.rect.y else -1
@@ -76,6 +75,7 @@ class Tile:
                 return False
         return True
 
+    # 타일 그리기
     def draw(self, surface, hide_number=False):
         if not self.used:
             color = BLACK if self.is_black else WHITE
@@ -86,9 +86,12 @@ class Tile:
                 text_rect = text.get_rect(center=(self.rect.centerx, self.rect.centery - 3))
                 surface.blit(text, text_rect)
 
+# 게임 로직 클래스
 class BlackWhiteGame:
+
     def __init__(self, is_ai_mode = True):
 
+        # 기본 초기화 설정
         self.is_ai_mode = is_ai_mode
         self.ai_player = PPOAIPlayer('trained_AI\\agent1_policy_ppo.pth') if is_ai_mode else None
         self.reset_game()
@@ -96,7 +99,7 @@ class BlackWhiteGame:
         self.title_glow = 0
         self.title_glow_direction = 1
         
-
+    # 메인 메뉴 관련 함수들
     def create_menu_particles(self):
         particles = []
         for _ in range(200):
@@ -136,41 +139,37 @@ class BlackWhiteGame:
 
     def draw_main_menu(self, screen):
 
-        # Gradient background
         if not hasattr(self, 'gradient_value'):
             self.gradient_value = 0
             self.gradient_direction = 1
             self.last_update = time.time()
 
-        # Calculate time difference
         now = time.time()
         time_diff = now - self.last_update
 
-        # Change the gradient value every 2ms
-        if time_diff >= 0.04:  # 20ms update interval for smooth animation
-            self.gradient_value += self.gradient_direction * 2  # Adjust speed by changing increment
-            if self.gradient_value >= 50:  # Reverse direction when reaching white
+        # 특정 시간마다 애니메이션 실행
+        if time_diff >= 0.04:  
+            self.gradient_value += self.gradient_direction * 2 
+            if self.gradient_value >= 50: 
                 self.gradient_value = 50
                 self.gradient_direction = -1
-            elif self.gradient_value <= 0:  # Reverse direction when reaching black
+            elif self.gradient_value <= 0: 
                 self.gradient_value = 0
                 self.gradient_direction = 1
             self.last_update = now
 
-        # Apply gradient value to the background
+        # 배경 색을 애니메이션 따라 변화
         background_color = (self.gradient_value, self.gradient_value, self.gradient_value)
         screen.fill(background_color)
         
-        # Animated particles
         self.update_menu_particles()
         self.draw_menu_particles(screen)
 
-        # Animated Title Glow
         self.title_glow += 2 * self.title_glow_direction
         if self.title_glow > 200 or self.title_glow < 0:
             self.title_glow_direction *= -1
         
-        # Title with glow effect
+        # 제목 출력
         title_surface = large_font.render("더 지니어스", True, GOLD)
         title_glow = large_font.render("더 지니어스", True, GRAY)
         
@@ -182,24 +181,23 @@ class BlackWhiteGame:
         screen.blit(subtitle_glow, (screen_width // 2 + title_surface.get_width() // 2 - 28, 230 - 2))        
         screen.blit(subtitle, (screen_width // 2 + title_surface.get_width() // 2 - 30 , 230))
 
-        # Buttons with hover effect
         mouse_pos = pygame.mouse.get_pos()
         
-        # VS AI Button
+        # VS AI 버튼
         vs_ai_rect = pygame.Rect(screen_width // 2 - 120, 350, 250, 60)
         vs_ai_color = GOLD if vs_ai_rect.collidepoint(mouse_pos) else LIGHT_RED
         pygame.draw.rect(screen, vs_ai_color, vs_ai_rect, border_radius=10)
         vs_ai_text = main_font.render("AI 대결", True, BLACK)
         screen.blit(vs_ai_text, (vs_ai_rect.centerx - vs_ai_text.get_width() // 2, vs_ai_rect.centery - vs_ai_text.get_height() // 2))
 
-        # VS Player Button
+        # VS Player 버튼
         vs_player_rect = pygame.Rect(screen_width // 2 - 120, 450, 250, 60)
         vs_player_color = GOLD if vs_player_rect.collidepoint(mouse_pos) else LIGHT_RED
         pygame.draw.rect(screen, vs_player_color, vs_player_rect, border_radius=10)
         vs_player_text = main_font.render("2P 모드", True, BLACK)
         screen.blit(vs_player_text, (vs_player_rect.centerx - vs_player_text.get_width() // 2, vs_player_rect.centery - vs_player_text.get_height() // 2))
 
-        # Exit Button
+        # Exit 버튼
         exit_rect = pygame.Rect(screen_width // 2 - 120, 550, 250, 60)
         exit_color = GOLD if exit_rect.collidepoint(mouse_pos) else LIGHT_RED
         pygame.draw.rect(screen, exit_color, exit_rect, border_radius=10)
@@ -236,6 +234,7 @@ class BlackWhiteGame:
         state.extend([self.round, self.player1_score, self.player2_score])
         return np.array(state, dtype=np.float32)
 
+    # 게임 초기화
     def reset_game(self):
         self.state = GameState.MAIN_MENU
         self.player1_tiles = [Tile(i, i % 2 == 0, True) for i in range(9)]
@@ -279,6 +278,7 @@ class BlackWhiteGame:
                 return i
         return None
 
+    # 턴제 구현
     def handle_event(self, event):
 
         if self.is_ai_mode and self.state == GameState.PLAYER2_TURN:
@@ -355,6 +355,7 @@ class BlackWhiteGame:
                 self.round += 1
                 self.reset_round()
 
+    # 턴 업데이트
     def update(self):
 
         if self.state == GameState.ANIMATING:
@@ -377,6 +378,7 @@ class BlackWhiteGame:
         if self.check_game_over():
             self.state = GameState.GAME_OVER
 
+    # 선택된 타일로 라운드 승패 판정
     def compare_tiles(self):
 
         player1_tile = self.selected_tile_player1
@@ -405,6 +407,7 @@ class BlackWhiteGame:
     def check_game_over(self):
         return self.player1_score >= 5 or self.player2_score >= 5 or self.round >= 10
 
+    # 승점 및 게임 종료시 출력문 관련 함수
     def draw(self, screen):
         
         screen.fill(DARK_RED)
