@@ -93,7 +93,7 @@ class BlackWhiteGame:
 
         # 기본 초기화 설정
         self.is_ai_mode = is_ai_mode
-        self.ai_player = PPOAIPlayer('trained_AI\\agent1_policy_ppo.pth') if is_ai_mode else None
+        self.ai_player = PolicyAIPlayer('trained_AI\\black_white_policy_agent1.pth') if is_ai_mode else None
         self.reset_game()
         self.menu_particles = self.create_menu_particles()
         self.title_glow = 0
