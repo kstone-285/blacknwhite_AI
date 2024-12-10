@@ -63,6 +63,9 @@ class PPOAIPlayer:
         
     def get_action(self, state, valid_actions):
 
+        if not valid_actions:
+            return None
+
         state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         with torch.no_grad():
             action_probs = self.policy_net(state).squeeze().cpu().numpy()
